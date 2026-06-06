@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MONSTER — داستان</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Orbitron:wght@400;700&family=Vazirmatn:wght@300;400;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --black: #030305;
+      --void: #07070f;
+      --neon-purple: #9b00ff;
+      --neon-blue: #00c3ff;
+      --blood: #6a003a;
+      --dim-white: rgba(220,210,255,0.9);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--black);
+      min-height: 100vh;
+      overflow: hidden;
+      cursor: none;
+      font-family: 'Vazirmatn', sans-serif;
+    }
+
+    /* Cursor */
+    .cursor {
+      position: fixed;
+      width: 14px; height: 14px;
+      border: 2px solid var(--neon-blue);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%,-50%);
+      box-shadow: 0 0 10px var(--neon-blue);
+      transition: transform 0.1s;
+    }
+
+    /* Background animated radials */
+    .bg {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 60% at 50% 50%, rgba(30,0,60,0.9) 0%, var(--black) 70%);
+      animation: breathe 6s ease-in-out infinite alternate;
+    }
+    @keyframes breathe {
+      0%   { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    /* Blood veins overlay */
+    .veins {
+      position: fixed;
+      inset: 0;
+      opacity: 0.07;
+      background-image:
+        radial-gradient(ellipse 2px 60% at 20% 50%, var(--neon-purple) 0%, transparent 100%),
+        radial-gradient(ellipse 1px 40% at 40% 70%, var(--neon-blue) 0%, transparent 100%),
+        radial-gradient(ellipse 2px 50% at 70% 30%, var(--neon-purple) 0%, transparent 100%),
+        radial-gradient(ellipse 1px 35% at 85% 60%, var(--neon-blue) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 1;
+      animation: veinsPulse 4s ease-in-out infinite alternate;
+    }
+    @keyframes veinsPulse {
+      0%   { opacity: 0.05; }
+      100% { opacity: 0.15; }
+    }
+
+    /* Scanlines */
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 3px,
+        rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px
+      );
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Noise texture */
+    .noise {
+      position: fixed;
+      inset: 0;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    /* Floating eye at top */
+    .top-eye {
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      opacity: 0.6;
+      animation: topEyeFloat 5s ease-in-out infinite;
+    }
+    @keyframes topEyeFloat {
+      0%,100% { opacity: 0.4; transform: translateX(-50%) scale(1); }
+      50%      { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
+    }
+
+    /* Main story container */
+    .story-wrap {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* Text card */
+    .text-card {
+      max-width: 680px;
+      width: 100%;
+      position: relative;
+      text-align: center;
+    }
+
+    /* Chapter label */
+    .chapter-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      color: rgba(155,0,255,0.6);
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    /* Story text */
+    .story-text {
+      font-size: clamp(1.1rem, 3vw, 1.5rem);
+      font-weight: 300;
+      line-height: 2.2;
+      color: var(--dim-white);
+      text-shadow: 0 0 20px rgba(155,0,255,0.3);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      margin-bottom: 2.5rem;
+      white-space: pre-line;
+    }
+    .story-text.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Highlight words */
+    .hl {
+      color: var(--neon-purple);
+      text-shadow: 0 0 15px var(--neon-purple), 0 0 30px rgba(155,0,255,0.5);
+      font-weight: 700;
+    }
+    .hl-b {
+      color: var(--neon-blue);
+      text-shadow: 0 0 15px var(--neon-blue);
+      font-weight: 700;
+    }
+
+    /* Click area / hint */
+    .click-hint {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.4em;
+      color: rgba(0,195,255,0.5);
+      text-transform: uppercase;
+      animation: hintBlink 2s ease-in-out infinite;
+      cursor: none;
+    }
+    @keyframes hintBlink {
+      0%,100% { opacity: 0.3; }
+      50%      { opacity: 1; }
+    }
+
+    /* Progress dots */
+    .progress-dots {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 2.5rem;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(155,0,255,0.3);
+      border: 1px solid rgba(155,0,255,0.5);
+      transition: all 0.4s ease;
+    }
+    .dot.active {
+      background: var(--neon-purple);
+      box-shadow: 0 0 10px var(--neon-purple), 0 0 20px rgba(155,0,255,0.5);
+    }
+    .dot.done {
+      background: rgba(0,195,255,0.4);
+    }
+
+    /* Ending screen */
+    .ending {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+    .ending.show { display: flex; }
+    .ending-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(2rem, 6vw, 4rem);
+      color: transparent;
+      background: linear-gradient(135deg, #fff 0%, var(--neon-purple) 60%, var(--neon-blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 30px var(--neon-purple));
+      animation: titleGlow 3s ease-in-out infinite alternate;
+    }
+    @keyframes titleGlow {
+      0%   { filter: drop-shadow(0 0 20px var(--neon-purple)); }
+      100% { filter: drop-shadow(0 0 50px var(--neon-blue)); }
+    }
+    .ending-msg {
+      font-size: 1rem;
+      color: rgba(200,180,255,0.7);
+      letter-spacing: 0.1em;
+      line-height: 2;
+    }
+    .back-btn {
+      padding: 0.9rem 3rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.3em;
+      color: #fff;
+      background: transparent;
+      border: 1px solid var(--neon-purple);
+      cursor: none;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 20px rgba(155,0,255,0.2);
+    }
+    .back-btn:hover {
+      background: rgba(155,0,255,0.2);
+      box-shadow: 0 0 40px rgba(155,0,255,0.5);
+    }
+
+    /* Glitch flash overlay */
+    .glitch-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(155,0,255,0.05);
+      z-index: 50;
+      pointer-events: none;
+      opacity: 0;
+    }
+    .glitch-overlay.flash {
+      animation: glitchFlash 0.3s ease;
+    }
+    @keyframes glitchFlash {
+      0%   { opacity: 0; }
+      20%  { opacity: 1; transform: skew(2deg); }
+      40%  { opacity: 0; transform: skew(-1deg); }
+      60%  { opacity: 0.5; }
+      100% { opacity: 0; transform: skew(0); }
+    }
+
+    /* Screen shake on click */
+    @keyframes shake {
+      0%,100% { transform: translate(0); }
+      20%  { transform: translate(-3px, 2px); }
+      40%  { transform: translate(3px, -1px); }
+      60%  { transform: translate(-2px, 3px); }
+      80%  { transform: translate(2px, -2px); }
+    }
+    .shaking { animation: shake 0.4s ease; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Particle burst on click */
+    .burst-particle {
+      position: fixed;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 100;
+      animation: burst 0.8s ease-out forwards;
+    }
+    @keyframes burst {
+      0%   { transform: translate(0,0) scale(1); opacity: 1; }
+      100% { transform: var(--tx); opacity: 0; }
+    }
+
+    /* corner decorations */
+    .corner { position: fixed; width: 60px; height: 60px; pointer-events: none; z-index: 5; }
+    .corner::before, .corner::after { content: ''; position: absolute; background: rgba(155,0,255,0.5); }
+    .corner::before { width: 1px; height: 30px; }
+    .corner::after  { width: 30px; height: 1px; }
+    .corner-tl { top: 15px; left: 15px; }
+    .corner-tl::before { top: 0; left: 0; }
+    .corner-tl::after  { top: 0; left: 0; }
+    .corner-tr { top: 15px; right: 15px; transform: scaleX(-1); }
+    .corner-tr::before { top: 0; left: 0; }
+    .corner-tr::after  { top: 0; left: 0; }
+    .corner-bl { bottom: 15px; left: 15px; transform: scaleY(-1); }
+    .corner-bl::before { top: 0; left: 0; }
+    .corner-bl::after  { top: 0; left: 0; }
+    .corner-br { bottom: 15px; right: 15px; transform: scale(-1); }
+    .corner-br::before { top: 0; left: 0; }
+    .corner-br::after  { top: 0; left: 0; }
+  </style>
+</head>
+<body>
+  <div class="cursor" id="cursor"></div>
+  <div class="bg"></div>
+  <div class="veins"></div>
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+  <div class="glitch-overlay" id="glitchOverlay"></div>
+
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <svg class="top-eye" width="60" height="35" viewBox="0 0 60 35" fill="none">
+    <ellipse cx="30" cy="17" rx="27" ry="13" stroke="#9b00ff" stroke-width="1.5" fill="none"/>
+    <circle cx="30" cy="17" r="8" fill="#0a0a12" stroke="#00c3ff" stroke-width="1"/>
+    <circle cx="30" cy="17" r="4" fill="#9b00ff">
+      <animate attributeName="r" values="4;5.5;4" dur="3s" repeatCount="indefinite"/>
+    </circle>
+  </svg>
+
+  <div class="story-wrap" id="storyWrap">
+    <div class="text-card" id="textCard">
+      <div class="chapter-label" id="chapterLabel">فصل ۱</div>
+      <div class="progress-dots" id="progressDots"></div>
+      <p class="story-text" id="storyText"></p>
+      <div class="click-hint" id="clickHint">برای ادامه کلیک کن</div>
+    </div>
+
+    <div class="ending" id="endingScreen">
+      <div class="ending-title">تو دیدی.</div>
+      <div class="ending-msg">
+        حالا چشمانت مانند چشمان <span style="color:#9b00ff">او</span> می‌بینند.<br/>
+        هیچ راهی برای بازگشت نیست.
+      </div>
+      <a class="back-btn" href="index.html">فرار کن</a>
+    </div>
+  </div>
+
+  <script>
+    // Cursor
+    const cursor = document.getElementById('cursor');
+    document.addEventListener('mousemove', e => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top  = e.clientY + 'px';
+    });
+
+    // Story data
+    const chapters = [
+      {
+        label: 'فصل ۱ — بیداری',
+        html: `تو <span class="hl">تنها</span> نیستی.
+هیچ‌وقت نبودی.
+از همان شبی که <span class="hl-b">چراغ اتاقت خاموش شد</span>،
+یک چیزی آنجا بود...
+و <span class="hl">تنفس می‌کرد</span>.`
+      },
+      {
+        label: 'فصل ۲ — صدا',
+        html: `صدا از دیوار می‌آمد.
+نه از پشتِ دیوار.
+از <span class="hl">داخل</span> آن.
+مثل انگشتانی که آرام آرام، <span class="hl-b">از درون</span> می‌خراشیدند.`
+      },
+      {
+        label: 'فصل ۳ — سایه',
+        html: `وقتی برگشتی، <span class="hl">سایه‌ات</span> آنجا نبود.
+اما سایه دیگری بود.
+شبیه تو.
+فقط <span class="hl-b">قدری کوتاه‌تر</span>...
+و <span class="hl">لبخند می‌زد</span>.`
+      },
+      {
+        label: 'فصل ۴ — آینه',
+        html: `نگاه کردی توی آینه.
+یک ثانیه.
+دو ثانیه.
+سه ثانیه.
+تصویرت <span class="hl">پلک نزد</span>.
+ولی <span class="hl-b">تو پلک زدی</span>.`
+      },
+      {
+        label: 'فصل ۵ — هویت',
+        html: `اسمت را به یاد می‌آوری؟
+مطمئنی؟
+<span class="hl-b">او</span> هم همین اسم را دارد.
+همین صورت.
+همین ترس‌ها.
+فقط <span class="hl">چشمانش</span> فرق دارد.
+چشمانش... <span class="hl">مثل چشمانِ من</span>.`
+      },
+      {
+        label: 'فصل ۶ — هیچ',
+        html: `وقتی صبح بیدار شوی،
+به دستانت نگاه کن.
+اگر <span class="hl">هفت انگشت</span> داشتی،
+بدان که دیشب <span class="hl-b">تو نخوابیدی</span>.
+<span class="hl">چیز دیگری</span> خوابید.`
+      },
+      {
+        label: 'فصل نهایی — دیدن',
+        html: `حالا می‌دانی چرا <span class="hl">MONSTER</span> نام دارم.
+نه چون ترسناکم.
+بلکه چون تنها کسی هستم که
+<span class="hl-b">حقیقت را</span> به تو گفت.
+و <span class="hl">حقیقت</span>... همیشه ترسناک‌ترین هیولاست.`
+      }
+    ];
+
+    let current = 0;
+    const storyText = document.getElementById('storyText');
+    const chapterLabel = document.getElementById('chapterLabel');
+    const clickHint = document.getElementById('clickHint');
+    const progressDots = document.getElementById('progressDots');
+    const textCard = document.getElementById('textCard');
+    const endingScreen = document.getElementById('endingScreen');
+    const glitchOverlay = document.getElementById('glitchOverlay');
+
+    // Build dots
+    chapters.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      progressDots.appendChild(d);
+    });
+
+    function updateDots() {
+      const dots = progressDots.querySelectorAll('.dot');
+      dots.forEach((d, i) => {
+        d.className = 'dot';
+        if (i < current) d.classList.add('done');
+        if (i === current) d.classList.add('active');
+      });
+    }
+
+    function showChapter(index) {
+      storyText.classList.remove('visible');
+      setTimeout(() => {
+        chapterLabel.textContent = chapters[index].label;
+        storyText.innerHTML = chapters[index].html;
+        storyText.classList.add('visible');
+        updateDots();
+      }, 400);
+    }
+
+    // Initial show
+    setTimeout(() => showChapter(0), 500);
+
+    // Particle burst
+    function spawnBurst(x, y) {
+      const colors = ['#9b00ff','#00c3ff','#bf00ff','#ffffff'];
+      for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'burst-particle';
+        const angle = (i / 12) * 360;
+        const dist = 40 + Math.random() * 60;
+        const tx = `translate(${Math.cos(angle * Math.PI/180) * dist}px, ${Math.sin(angle * Math.PI/180) * dist}px)`;
+        p.style.cssText = `
+          left:${x}px; top:${y}px;
+          background:${colors[Math.floor(Math.random()*colors.length)]};
+          --tx:${tx};
+          box-shadow:0 0 6px currentColor;
+        `;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 800);
+      }
+    }
+
+    // Glitch flash
+    function triggerGlitch() {
+      glitchOverlay.classList.remove('flash');
+      void glitchOverlay.offsetWidth;
+      glitchOverlay.classList.add('flash');
+    }
+
+    // Click handler
+    document.addEventListener('click', e => {
+      spawnBurst(e.clientX, e.clientY);
+      triggerGlitch();
+
+      current++;
+      if (current >= chapters.length) {
+        // Ending
+        textCard.style.transition = 'opacity 0.8s ease';
+        textCard.style.opacity = '0';
+        setTimeout(() => {
+          textCard.style.display = 'none';
+          endingScreen.classList.add('show');
+        }, 800);
+        return;
+      }
+
+      // Shake
+      document.body.classList.remove('shaking');
+      void document.body.offsetWidth;
+      document.body.classList.add('shaking');
+
+      showChapter(current);
+    });
+
+    // Back button
+    document.querySelector('.back-btn').addEventListener('click', e => {
+      e.preventDefault();
+      document.body.style.transition = 'opacity 1s ease';
+      document.body.style.opacity = '0';
+      setTimeout(() => window.location.href = 'index.html', 1000);
+    });
+
+    // Ambient random flickers
+    setInterval(() => {
+      if (Math.random() < 0.1) triggerGlitch();
+    }, 3000);
+  </script>
+</body>
+</html>

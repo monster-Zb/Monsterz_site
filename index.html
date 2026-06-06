@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MONSTER</title>
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Cinzel+Decorative:wght@700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --deep-black: #050508;
+      --void: #0a0a12;
+      --neon-purple: #9b00ff;
+      --neon-blue: #00c3ff;
+      --neon-violet: #bf00ff;
+      --glow-purple: rgba(155, 0, 255, 0.6);
+      --glow-blue: rgba(0, 195, 255, 0.6);
+      --dark-purple: #1a0033;
+      --mid-purple: #2d0060;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--deep-black);
+      min-height: 100vh;
+      overflow: hidden;
+      cursor: none;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      position: fixed;
+      width: 16px; height: 16px;
+      border: 2px solid var(--neon-purple);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.1s ease;
+      box-shadow: 0 0 10px var(--neon-purple), 0 0 20px var(--neon-purple);
+      transform: translate(-50%, -50%);
+    }
+    .cursor-trail {
+      position: fixed;
+      width: 6px; height: 6px;
+      background: var(--neon-blue);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.7;
+      transform: translate(-50%, -50%);
+      transition: all 0.15s ease;
+      box-shadow: 0 0 6px var(--neon-blue);
+    }
+
+    /* Animated background */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 50%, rgba(45,0,96,0.5) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0,100,200,0.2) 0%, transparent 60%),
+        radial-gradient(ellipse 30% 30% at 80% 20%, rgba(150,0,255,0.2) 0%, transparent 60%),
+        var(--deep-black);
+      animation: bgPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes bgPulse {
+      0%   { opacity: 0.8; }
+      100% { opacity: 1; }
+    }
+
+    /* Floating particles */
+    .particles {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      animation: floatUp linear infinite;
+      opacity: 0;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 0.6; }
+      100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+    }
+
+    /* Grid lines */
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(155,0,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(155,0,255,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 2;
+      animation: gridMove 20s linear infinite;
+    }
+    @keyframes gridMove {
+      0%   { background-position: 0 0; }
+      100% { background-position: 60px 60px; }
+    }
+
+    /* Scanlines */
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* Main content */
+    .main {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 2rem;
+    }
+
+    /* Eye decoration */
+    .eye-container {
+      position: relative;
+      animation: floatEye 4s ease-in-out infinite;
+    }
+    @keyframes floatEye {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-15px); }
+    }
+    .eye-svg {
+      width: 120px; height: 70px;
+      filter: drop-shadow(0 0 20px var(--neon-purple)) drop-shadow(0 0 40px var(--neon-blue));
+    }
+
+    /* Title */
+    .title-wrap {
+      text-align: center;
+      position: relative;
+    }
+    .title-main {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(3rem, 10vw, 8rem);
+      font-weight: 900;
+      letter-spacing: 0.3em;
+      color: transparent;
+      background: linear-gradient(135deg, #ffffff 0%, var(--neon-blue) 40%, var(--neon-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      filter: drop-shadow(0 0 30px var(--neon-purple));
+      animation: titleGlow 3s ease-in-out infinite alternate;
+      position: relative;
+    }
+    @keyframes titleGlow {
+      0%   { filter: drop-shadow(0 0 20px var(--neon-purple)) drop-shadow(0 0 5px var(--neon-blue)); }
+      100% { filter: drop-shadow(0 0 50px var(--neon-purple)) drop-shadow(0 0 30px var(--neon-blue)); }
+    }
+    .title-sub {
+      font-size: clamp(0.6rem, 2vw, 0.9rem);
+      letter-spacing: 0.6em;
+      color: rgba(191,0,255,0.7);
+      text-transform: uppercase;
+      margin-top: 0.5rem;
+      animation: fadeInSub 2s ease forwards;
+    }
+    @keyframes fadeInSub {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Glitch effect on title */
+    .title-main::before,
+    .title-main::after {
+      content: 'MONSTER';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      background: linear-gradient(135deg, #ffffff 0%, var(--neon-blue) 40%, var(--neon-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .title-main::before {
+      animation: glitch1 4s infinite;
+      clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+    }
+    .title-main::after {
+      animation: glitch2 4s infinite;
+      clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+    }
+    @keyframes glitch1 {
+      0%,95%,100% { transform: translate(0); }
+      96% { transform: translate(-4px, 1px); filter: hue-rotate(90deg); }
+      98% { transform: translate(4px, -1px); }
+    }
+    @keyframes glitch2 {
+      0%,92%,100% { transform: translate(0); }
+      93% { transform: translate(4px, 2px); filter: hue-rotate(-90deg); }
+      95% { transform: translate(-4px, -2px); }
+    }
+
+    /* Decorative line */
+    .deco-line {
+      width: 300px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--neon-purple), var(--neon-blue), var(--neon-purple), transparent);
+      position: relative;
+      animation: lineGlow 2s ease-in-out infinite alternate;
+    }
+    @keyframes lineGlow {
+      0%   { box-shadow: 0 0 10px var(--neon-purple); }
+      100% { box-shadow: 0 0 25px var(--neon-blue), 0 0 50px var(--neon-purple); }
+    }
+
+    /* Enter button */
+    .enter-btn {
+      position: relative;
+      padding: 1.2rem 4rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      color: #fff;
+      background: transparent;
+      border: none;
+      cursor: none;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-block;
+      animation: btnAppear 2.5s ease forwards;
+    }
+    @keyframes btnAppear {
+      from { opacity: 0; transform: scale(0.8); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* Button borders */
+    .enter-btn::before,
+    .enter-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 2px solid transparent;
+      transition: all 0.4s ease;
+    }
+    .enter-btn::before {
+      border-top-color: var(--neon-purple);
+      border-right-color: var(--neon-purple);
+      animation: borderSpin1 3s linear infinite;
+    }
+    .enter-btn::after {
+      border-bottom-color: var(--neon-blue);
+      border-left-color: var(--neon-blue);
+      animation: borderSpin2 3s linear infinite;
+    }
+    @keyframes borderSpin1 {
+      0%   { clip-path: polygon(0 0, 50% 0, 50% 0, 0 0); }
+      50%  { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+      100% { clip-path: polygon(0 0, 50% 0, 50% 0, 0 0); }
+    }
+    @keyframes borderSpin2 {
+      0%   { clip-path: polygon(100% 100%, 50% 100%, 50% 100%, 100% 100%); }
+      50%  { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+      100% { clip-path: polygon(100% 100%, 50% 100%, 50% 100%, 100% 100%); }
+    }
+
+    .btn-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(155,0,255,0.15), rgba(0,195,255,0.1));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .enter-btn:hover .btn-bg {
+      opacity: 1;
+    }
+    .enter-btn:hover {
+      color: #fff;
+      text-shadow: 0 0 20px var(--neon-blue), 0 0 40px var(--neon-purple);
+      transform: scale(1.05);
+    }
+    .btn-text {
+      position: relative;
+      z-index: 1;
+    }
+    .btn-glow {
+      position: absolute;
+      inset: -10px;
+      background: radial-gradient(ellipse, rgba(155,0,255,0.3) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .enter-btn:hover .btn-glow {
+      opacity: 1;
+      animation: btnGlowPulse 1s ease infinite;
+    }
+    @keyframes btnGlowPulse {
+      0%,100% { transform: scale(1); }
+      50%      { transform: scale(1.1); }
+    }
+
+    /* Corner decorations */
+    .corner {
+      position: fixed;
+      width: 80px; height: 80px;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .corner::before,
+    .corner::after {
+      content: '';
+      position: absolute;
+      background: var(--neon-purple);
+      box-shadow: 0 0 10px var(--neon-purple);
+    }
+    .corner::before { width: 2px; height: 40px; }
+    .corner::after  { width: 40px; height: 2px; }
+    .corner-tl { top: 20px; left: 20px; }
+    .corner-tl::before { top: 0; left: 0; }
+    .corner-tl::after  { top: 0; left: 0; }
+    .corner-tr { top: 20px; right: 20px; transform: scaleX(-1); }
+    .corner-tr::before { top: 0; left: 0; }
+    .corner-tr::after  { top: 0; left: 0; }
+    .corner-bl { bottom: 20px; left: 20px; transform: scaleY(-1); }
+    .corner-bl::before { top: 0; left: 0; }
+    .corner-bl::after  { top: 0; left: 0; }
+    .corner-br { bottom: 20px; right: 20px; transform: scale(-1); }
+    .corner-br::before { top: 0; left: 0; }
+    .corner-br::after  { top: 0; left: 0; }
+
+    /* Fog animation at bottom */
+    .fog {
+      position: fixed;
+      bottom: 0;
+      left: 0; right: 0;
+      height: 200px;
+      background: linear-gradient(to top, rgba(45,0,96,0.4) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 4;
+      animation: fogDrift 6s ease-in-out infinite alternate;
+    }
+    @keyframes fogDrift {
+      0%   { opacity: 0.5; transform: scaleY(1); }
+      100% { opacity: 0.9; transform: scaleY(1.2); }
+    }
+
+    /* Warning text */
+    .warning-text {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.6rem;
+      letter-spacing: 0.4em;
+      color: rgba(155,0,255,0.4);
+      text-transform: uppercase;
+      z-index: 10;
+      animation: warnBlink 3s ease-in-out infinite;
+    }
+    @keyframes warnBlink {
+      0%,100% { opacity: 0.3; }
+      50%      { opacity: 0.8; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-trail" id="cursorTrail"></div>
+
+  <div class="bg-layer"></div>
+  <div class="particles" id="particles"></div>
+  <div class="grid-overlay"></div>
+  <div class="scanlines"></div>
+  <div class="fog"></div>
+
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <main class="main">
+    <div class="eye-container">
+      <svg class="eye-svg" viewBox="0 0 120 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="60" cy="35" rx="55" ry="28" stroke="#9b00ff" stroke-width="2" fill="none"/>
+        <circle cx="60" cy="35" r="18" fill="#0a0a12" stroke="#00c3ff" stroke-width="1.5"/>
+        <circle cx="60" cy="35" r="10" fill="#1a0033"/>
+        <circle cx="60" cy="35" r="5" fill="#9b00ff">
+          <animate attributeName="r" values="5;7;5" dur="3s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="54" cy="30" r="2.5" fill="white" opacity="0.9"/>
+        <ellipse cx="60" cy="35" rx="55" ry="28" stroke="#bf00ff" stroke-width="0.5" stroke-dasharray="5 3" fill="none">
+          <animateTransform attributeName="transform" type="rotate" from="0 60 35" to="360 60 35" dur="20s" repeatCount="indefinite"/>
+        </ellipse>
+      </svg>
+    </div>
+
+    <div class="title-wrap">
+      <div class="title-main">MONSTER</div>
+      <div class="title-sub">▸ به اعماق خوش آمدید ▸</div>
+    </div>
+
+    <div class="deco-line"></div>
+
+    <a class="enter-btn" href="story.html">
+      <div class="btn-bg"></div>
+      <div class="btn-glow"></div>
+      <span class="btn-text">وارد شو</span>
+    </a>
+  </main>
+
+  <div class="warning-text">⚠ هرکسی که وارد شود، باز نمی‌گردد ⚠</div>
+
+  <script>
+    // Custom cursor
+    const cursor = document.getElementById('cursor');
+    const trail = document.getElementById('cursorTrail');
+    let mx = 0, my = 0, tx = 0, ty = 0;
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cursor.style.left = mx + 'px';
+      cursor.style.top  = my + 'px';
+    });
+    function animTrail() {
+      tx += (mx - tx) * 0.2;
+      ty += (my - ty) * 0.2;
+      trail.style.left = tx + 'px';
+      trail.style.top  = ty + 'px';
+      requestAnimationFrame(animTrail);
+    }
+    animTrail();
+
+    // Particles
+    const container = document.getElementById('particles');
+    const colors = ['#9b00ff','#00c3ff','#bf00ff','#6600cc','#0066ff'];
+    for (let i = 0; i < 60; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = Math.random() * 4 + 1;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      p.style.cssText = `
+        width:${size}px; height:${size}px;
+        background:${color};
+        left:${Math.random()*100}%;
+        animation-duration:${6 + Math.random()*10}s;
+        animation-delay:${Math.random()*8}s;
+        box-shadow:0 0 ${size*3}px ${color};
+      `;
+      container.appendChild(p);
+    }
+
+    // Hover effect on button
+    document.querySelector('.enter-btn').addEventListener('mouseenter', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(2)';
+      cursor.style.borderColor = '#00c3ff';
+    });
+    document.querySelector('.enter-btn').addEventListener('mouseleave', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(1)';
+      cursor.style.borderColor = '#9b00ff';
+    });
+
+    // Transition to story page
+    document.querySelector('.enter-btn').addEventListener('click', e => {
+      e.preventDefault();
+      document.body.style.transition = 'opacity 1s ease';
+      document.body.style.opacity = '0';
+      setTimeout(() => window.location.href = 'story.html', 1000);
+    });
+  </script>
+</body>
+</html>
